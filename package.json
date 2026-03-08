@@ -1,0 +1,20 @@
+{
+  "name": "gowherer-web",
+  "version": "1.0.0",
+  "description": "GoWherer 官方网站",
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs",
+    "lint": "eslint . --ext .js,.ts,.vue"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "eslint": "^10.0.3",
+    "eslint-plugin-vue": "^10.8.0",
+    "vitepress": "^1.6.4"
+  }
+}
