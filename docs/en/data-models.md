@@ -178,6 +178,27 @@ export type LocalePreference = Locale | 'system';
 export type Locale = 'en' | 'zh';
 ```
 
+### AppBackupV1
+
+Application backup data structure for data export and migration.
+
+```typescript
+export type AppBackupV1 = {
+  version: 1;
+  exportedAt: string;
+  app: {
+    slug: string;
+    version: string;
+  };
+  preferences: {
+    locale: LocalePreference;
+    theme: ThemePreference;
+  };
+  journeys: Journey[];
+  entryTemplates: Record<Locale, EntryTemplateConfig>;
+};
+```
+
 ---
 
 ## Data Flow
@@ -222,3 +243,5 @@ All data is persisted locally via AsyncStorage with the prefix `gowherer:`.
 | `gowherer:entry-templates:v1:zh` | `EntryTemplate[]` | Chinese templates |
 | `gowherer:entry-templates:v1:en` | `EntryTemplate[]` | English templates |
 | `gowherer:pending-location:v1` | `TimelineLocation` | Pending location (temporarily stored after map picker) |
+| `gowherer:locale-preference:v1` | `LocalePreference` | Locale preference |
+| `gowherer:theme-preference:v1` | `ThemePreference` | Theme preference |

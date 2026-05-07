@@ -266,6 +266,70 @@ async function initLocalLogFile(): Promise<void>
 
 ---
 
+## 数据备份 (`lib/data-backup.ts`)
+
+提供应用数据的导出与导入功能，支持跨设备迁移。
+
+### `buildAppBackup(appVersion)`
+
+```typescript
+async function buildAppBackup(appVersion: string): Promise<AppBackupV1>
+```
+
+构建完整备份数据，包含旅程、模板、主题与语言偏好。
+
+**返回值**：`AppBackupV1` 对象
+
+### `writeBackupToFile(backup)`
+
+```typescript
+async function writeBackupToFile(backup: AppBackupV1): Promise<{ fileName: string; uri: string }>
+```
+
+将备份数据写入缓存目录的 JSON 文件。
+
+### `serializeBackup(backup)`
+
+```typescript
+function serializeBackup(backup: AppBackupV1): string
+```
+
+将备份序列化为 JSON 字符串（用于分享或复制）。
+
+### `parseBackupString(raw)`
+
+```typescript
+function parseBackupString(raw: string): AppBackupV1
+```
+
+解析备份 JSON 字符串，支持版本校验与格式容错。
+
+### `importBackup(backup)`
+
+```typescript
+async function importBackup(backup: AppBackupV1): Promise<ImportResult>
+```
+
+将备份数据写入 AsyncStorage，完成数据恢复。
+
+---
+
+## 媒体存储 (`lib/media-storage.ts`)
+
+管理媒体文件（照片、视频、音频）的持久化存储。
+
+### `persistTimelineMedia(mediaItems)`
+
+```typescript
+async function persistTimelineMedia(mediaItems: TimelineMedia[]): Promise<TimelineMedia[]>
+```
+
+将媒体文件复制到应用托管目录 `gowherer-media/`，返回更新 URI 后的媒体列表。已托管的文件会被跳过。
+
+**媒体目录**：`${FileSystem.documentDirectory}gowherer-media/`
+
+---
+
 ## 服务依赖关系
 
 ```mermaid
@@ -275,13 +339,19 @@ flowchart LR
     Storage --> TemplateI18n[template-storage-i18n]
     Storage --> PendingLocation[pending-location]
     Storage --> LocalLog[local-log]
+    Storage --> DataBackup[data-backup]
+
+    FileSystem[FileSystem] --> MediaStorage[media-storage]
+    FileSystem --> DataBackup
 
     JourneyStorage --> JourneyPage[旅程时间线页面]
     TemplateStorage --> JourneyPage
     TemplateI18n --> JourneyPage
     PendingLocation --> LocationPicker[地图选点页面]
+    DataBackup --> SettingsPage[设置页面]
 
     TrackUtils[track-utils] --> ExplorePage[旅程回顾页面]
+    MediaStorage --> JourneyPage
     ReverseGeocode[reverse-geocode] --> LocationPicker
     ReverseGeocode --> JourneyPage
     LocalLog --> AllPages[所有页面]

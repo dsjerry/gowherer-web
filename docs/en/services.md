@@ -266,6 +266,70 @@ Initializes the log file and writes an initialization record.
 
 ---
 
+## Data Backup (`lib/data-backup.ts`)
+
+Provides application data export and import for cross-device migration.
+
+### `buildAppBackup(appVersion)`
+
+```typescript
+async function buildAppBackup(appVersion: string): Promise<AppBackupV1>
+```
+
+Builds a complete backup containing journeys, templates, theme, and locale preferences.
+
+**Returns**: `AppBackupV1` object
+
+### `writeBackupToFile(backup)`
+
+```typescript
+async function writeBackupToFile(backup: AppBackupV1): Promise<{ fileName: string; uri: string }>
+```
+
+Writes backup data to a JSON file in the cache directory.
+
+### `serializeBackup(backup)`
+
+```typescript
+function serializeBackup(backup: AppBackupV1): string
+```
+
+Serializes backup to JSON string for sharing or copying.
+
+### `parseBackupString(raw)`
+
+```typescript
+function parseBackupString(raw: string): AppBackupV1
+```
+
+Parses backup JSON string with version validation and format tolerance.
+
+### `importBackup(backup)`
+
+```typescript
+async function importBackup(backup: AppBackupV1): Promise<ImportResult>
+```
+
+Writes backup data to AsyncStorage to complete data restoration.
+
+---
+
+## Media Storage (`lib/media-storage.ts`)
+
+Manages persistent storage of media files (photos, videos, audio).
+
+### `persistTimelineMedia(mediaItems)`
+
+```typescript
+async function persistTimelineMedia(mediaItems: TimelineMedia[]): Promise<TimelineMedia[]>
+```
+
+Copies media files to the app-managed directory `gowherer-media/`, returning media list with updated URIs. Already managed files are skipped.
+
+**Media Directory**: `${FileSystem.documentDirectory}gowherer-media/`
+
+---
+
 ## Service Dependency Graph
 
 ```mermaid
@@ -275,13 +339,19 @@ flowchart LR
     Storage --> TemplateI18n[template-storage-i18n]
     Storage --> PendingLocation[pending-location]
     Storage --> LocalLog[local-log]
+    Storage --> DataBackup[data-backup]
+
+    FileSystem[FileSystem] --> MediaStorage[media-storage]
+    FileSystem --> DataBackup
 
     JourneyStorage --> JourneyPage[Timeline Page]
     TemplateStorage --> JourneyPage
     TemplateI18n --> JourneyPage
     PendingLocation --> LocationPicker[Map Picker Page]
+    DataBackup --> SettingsPage[Settings Page]
 
     TrackUtils[track-utils] --> ExplorePage[Explore Page]
+    MediaStorage --> JourneyPage
     ReverseGeocode[reverse-geocode] --> LocationPicker
     ReverseGeocode --> JourneyPage
     LocalLog --> AllPages[All Pages]

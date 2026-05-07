@@ -178,6 +178,27 @@ export type LocalePreference = Locale | 'system';
 export type Locale = 'en' | 'zh';
 ```
 
+### AppBackupV1
+
+应用备份数据结构，用于数据导出与迁移。
+
+```typescript
+export type AppBackupV1 = {
+  version: 1;
+  exportedAt: string;
+  app: {
+    slug: string;
+    version: string;
+  };
+  preferences: {
+    locale: LocalePreference;
+    theme: ThemePreference;
+  };
+  journeys: Journey[];
+  entryTemplates: Record<Locale, EntryTemplateConfig>;
+};
+```
+
 ---
 
 ## 数据流向
@@ -222,3 +243,5 @@ flowchart TD
 | `gowherer:entry-templates:v1:zh` | `EntryTemplate[]` | 中文模板 |
 | `gowherer:entry-templates:v1:en` | `EntryTemplate[]` | 英文模板 |
 | `gowherer:pending-location:v1` | `TimelineLocation` | 待处理位置（地图选点后临时存储） |
+| `gowherer:locale-preference:v1` | `LocalePreference` | 语言偏好 |
+| `gowherer:theme-preference:v1` | `ThemePreference` | 主题偏好 |

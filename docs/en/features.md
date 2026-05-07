@@ -47,6 +47,17 @@ GoWherer provides a set of core capabilities designed around "recording journeys
 - Interactive Animations: Smooth and natural page feedback with haptic responses.
 - Local Logging: Built-in logging system with log file export for error tracking and debugging.
 
+### Data Backup & Migration
+- One-click Backup: Export journey data, template configuration, theme, and language preferences to a JSON file.
+- Import Restore: Restore all data from a backup file with version validation and format tolerance.
+- Selective Migration: Preserve journey records and personal templates during device migration.
+
+### Location Tracking
+- Background Location Tracking: Automatically and continuously record GPS track points during an active journey.
+- Track Smoothing: Apply weighted smoothing to reduce GPS drift and noise.
+- Mileage Statistics: Calculate cumulative travel distance using the Haversine formula.
+- Media Persistence: Automatically copy photos, videos, and audio to app-managed directory to prevent reference invalidation.
+
 ## Interface Preview
 
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px;">
