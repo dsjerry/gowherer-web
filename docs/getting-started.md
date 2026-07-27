@@ -41,6 +41,9 @@ cp .env.example .env
 |--------|------|
 | `EXPO_PUBLIC_AMAP_WEB_KEY` | 高德地图 Web API Key（用于逆地理编码请求） |
 | `AMAP_ANDROID_API_KEY` | 高德地图 Android SDK Key（用于 Android 端原生地图展示） |
+| `EXPO_PUBLIC_REVERSE_GEOCODE_PROVIDER` | 反向地理编码服务商：`amap`（高德）或 `system`（系统原生），默认 `amap` |
+| `APP_VERSION` | 覆盖应用版本号（可选，用于本地/EAS 构建） |
+| `EAS_PROJECT_ID` | EAS 项目 ID（可选，app.config.ts 已内置默认值） |
 
 ### 4. 启动开发服务
 
@@ -73,6 +76,9 @@ gowherer/
 │   ├── template-storage.ts   # 模板管理
 │   ├── track-utils.ts        # 轨迹处理
 │   ├── reverse-geocode.ts    # 地理编码
+│   ├── background-location.ts # 后台定位追踪
+│   ├── media-migration.ts    # 媒体文件迁移
+│   ├── media-storage.ts      # 媒体持久化存储
 │   └── local-log.ts          # 本地日志
 ├── types/              # TypeScript 类型定义
 ├── locales/            # 国际化翻译资源

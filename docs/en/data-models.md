@@ -83,7 +83,10 @@ export type TimelineLocation = {
   latitude: number;          // Latitude (-90 ~ 90)
   longitude: number;          // Longitude (-180 ~ 180)
   accuracy?: number | null;  // Accuracy in meters, optional
-  placeName?: string;          // Place name (via reverse geocoding), optional
+  placeName?: string;        // Place name (via reverse geocoding), optional
+  capturedAt?: string;       // Capture time (ISO 8601), optional
+  source?: 'manual' | 'tracking'; // Source: manual picker | background tracking, optional
+  coordSystem?: 'wgs84' | 'gcj02'; // Coordinate system, optional
 };
 ```
 

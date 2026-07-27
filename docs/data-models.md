@@ -83,7 +83,10 @@ export type TimelineLocation = {
   latitude: number;          // 纬度 (-90 ~ 90)
   longitude: number;         // 经度 (-180 ~ 180)
   accuracy?: number | null;  // 定位精度（米），可选
-  placeName?: string;         // 地点名称（通过逆地理编码获取），可选
+  placeName?: string;        // 地点名称（通过逆地理编码获取），可选
+  capturedAt?: string;       // 采集时间（ISO 8601），可选
+  source?: 'manual' | 'tracking'; // 来源：手动选点 | 后台追踪，可选
+  coordSystem?: 'wgs84' | 'gcj02'; // 坐标系，可选
 };
 ```
 

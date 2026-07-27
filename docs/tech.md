@@ -3,10 +3,16 @@
 GoWherer 采用现代化前端与跨平台技术组合，兼顾开发效率、性能与可维护性。
 
 ## 应用层
-- Expo SDK
-- React Native
-- React
+- Expo SDK 55
+- React Native 0.83.6
+- React 19.2.0
 - TypeScript
+- expo-router（文件路由）
+
+## 地图与定位
+- expo-gaode-map（高德地图 SDK 封装）
+- react-native-maps（地图组件）
+- expo-task-manager（后台任务管理）
 
 ## 文档与站点
 - VitePress
@@ -16,6 +22,7 @@ GoWherer 采用现代化前端与跨平台技术组合，兼顾开发效率、�
 ## 工程化
 - ESLint（代码规范）
 - npm scripts（任务管理）
+- EAS Build（云构建）
 
 ## 设计原则
 - 跨平台优先：同一套业务逻辑覆盖移动端与 Web。

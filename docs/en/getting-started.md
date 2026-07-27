@@ -41,6 +41,9 @@ Edit the `.env` file and fill in the following variables:
 |----------|-------------|
 | `EXPO_PUBLIC_AMAP_WEB_KEY` | Amap Web API Key (used for reverse geocoding requests) |
 | `AMAP_ANDROID_API_KEY` | Amap Android SDK Key (used for native map rendering on Android) |
+| `EXPO_PUBLIC_REVERSE_GEOCODE_PROVIDER` | Reverse geocode provider: `amap` (Amap) or `system` (system native), defaults to `amap` |
+| `APP_VERSION` | Override app version (optional, for local/EAS builds) |
+| `EAS_PROJECT_ID` | EAS project ID (optional, app.config.ts has built-in default) |
 
 ### 4. Start Development Server
 
@@ -73,6 +76,9 @@ gowherer/
 │   ├── template-storage.ts   # Template management
 │   ├── track-utils.ts        # Track processing
 │   ├── reverse-geocode.ts    # Geocoding
+│   ├── background-location.ts # Background location tracking
+│   ├── media-migration.ts    # Media file migration
+│   ├── media-storage.ts      # Media persistence storage
 │   └── local-log.ts          # Local logging
 ├── types/              # TypeScript type definitions
 ├── locales/            # Internationalization resources

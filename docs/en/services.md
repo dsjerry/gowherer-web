@@ -330,6 +330,83 @@ Copies media files to the app-managed directory `gowherer-media/`, returning med
 
 ---
 
+## Media Migration (`lib/media-migration.ts`)
+
+Migrates media files from the old cache directory to the app-managed directory, fixing broken media references after app upgrades.
+
+### `getMediaMigrationStats()`
+
+```typescript
+async function getMediaMigrationStats(): Promise<{ hasOldMedia: boolean; oldFileCount: number }>
+```
+
+Checks if the old cache directory (`cacheDirectory/ImagePicker/`) has leftover media files.
+
+### `migrateOldMedia(journeys)`
+
+```typescript
+async function migrateOldMedia(journeys: Journey[]): Promise<{ migrated: number; failed: number }>
+```
+
+Moves media files from the old cache directory to `gowherer-media/` and updates all URI references in Journey data.
+
+---
+
+## Background Location (`lib/background-location.ts`)
+
+Background GPS tracking based on `expo-gaode-map` and `expo-task-manager`.
+
+### `startLocationTracking(journeyId)`
+
+```typescript
+async function startLocationTracking(journeyId: string): Promise<void>
+```
+
+Starts background location tracking, buffering track points to AsyncStorage and periodically batch-appending to the Journey's `trackLocations`.
+
+### `stopLocationTracking()`
+
+```typescript
+async function stopLocationTracking(): Promise<void>
+```
+
+Stops background location tracking.
+
+### `isLocationTrackingActive()`
+
+```typescript
+async function isLocationTrackingActive(): Promise<boolean>
+```
+
+Checks if a tracking session is currently active.
+
+### `syncBufferedTrackLocations()`
+
+```typescript
+async function syncBufferedTrackLocations(): Promise<void>
+```
+
+Flushes buffered track points to Journey data.
+
+---
+
+## Location Tracking Hook (`hooks/use-location-tracking.ts`)
+
+React Hook wrapping background location tracking for use in page components.
+
+### `useLocationTracking(activeJourney, onRefreshJourneys?)`
+
+```typescript
+function useLocationTracking(
+  activeJourney: Journey | undefined,
+  onRefreshJourneys?: () => void
+): { locationTracking: boolean; trackingBusy: boolean; toggleTracking: () => void }
+```
+
+Automatically manages background location start/stop based on current journey state, returning tracking status and toggle method.
+
+---
+
 ## Service Dependency Graph
 
 ```mermaid
@@ -342,6 +419,7 @@ flowchart LR
     Storage --> DataBackup[data-backup]
 
     FileSystem[FileSystem] --> MediaStorage[media-storage]
+    FileSystem --> MediaMigration[media-migration]
     FileSystem --> DataBackup
 
     JourneyStorage --> JourneyPage[Timeline Page]
@@ -352,7 +430,10 @@ flowchart LR
 
     TrackUtils[track-utils] --> ExplorePage[Explore Page]
     MediaStorage --> JourneyPage
+    MediaMigration --> JourneyPage
     ReverseGeocode[reverse-geocode] --> LocationPicker
     ReverseGeocode --> JourneyPage
+    BackgroundLocation[background-location] --> JourneyPage
+    LocationTracking[use-location-tracking] --> JourneyPage
     LocalLog --> AllPages[All Pages]
 ```

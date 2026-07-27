@@ -314,7 +314,84 @@ async function importBackup(backup: AppBackupV1): Promise<ImportResult>
 
 ---
 
-## 媒体存储 (`lib/media-storage.ts`)
+## 媒体迁移 (`lib/media-migration.ts`)
+
+将旧版缓存目录中的媒体文件迁移到应用托管目录，解决升级后媒体引用失效问题。
+
+#### `getMediaMigrationStats()`
+
+```typescript
+async function getMediaMigrationStats(): Promise<{ hasOldMedia: boolean; oldFileCount: number }>
+```
+
+检查旧缓存目录（`cacheDirectory/ImagePicker/`）是否有残留媒体文件。
+
+#### `migrateOldMedia(journeys)`
+
+```typescript
+async function migrateOldMedia(journeys: Journey[]): Promise<{ migrated: number; failed: number }>
+```
+
+将旧缓存目录中的媒体文件移动到 `gowherer-media/` 目录，并更新所有 Journey 中对应的 URI 引用。
+
+---
+
+## 后台定位 (`lib/background-location.ts`)
+
+基于 `expo-gaode-map` 和 `expo-task-manager` 实现后台 GPS 追踪。
+
+#### `startLocationTracking(journeyId)`
+
+```typescript
+async function startLocationTracking(journeyId: string): Promise<void>
+```
+
+启动后台位置追踪，将轨迹点缓冲写入 AsyncStorage，定期批量追加到对应 Journey 的 `trackLocations`。
+
+#### `stopLocationTracking()`
+
+```typescript
+async function stopLocationTracking(): Promise<void>
+```
+
+停止后台位置追踪。
+
+#### `isLocationTrackingActive()`
+
+```typescript
+async function isLocationTrackingActive(): Promise<boolean>
+```
+
+检查当前是否有活跃的追踪任务。
+
+#### `syncBufferedTrackLocations()`
+
+```typescript
+async function syncBufferedTrackLocations(): Promise<void>
+```
+
+将缓冲区中的轨迹点批量写入 Journey 数据。
+
+---
+
+## 定位追踪 Hook (`hooks/use-location-tracking.ts`)
+
+封装后台定位的 React Hook，供页面组件使用。
+
+#### `useLocationTracking(activeJourney, onRefreshJourneys?)`
+
+```typescript
+function useLocationTracking(
+  activeJourney: Journey | undefined,
+  onRefreshJourneys?: () => void
+): { locationTracking: boolean; trackingBusy: boolean; toggleTracking: () => void }
+```
+
+根据当前旅程状态自动管理后台定位的启停，返回追踪状态与切换方法。
+
+---
+
+## 服务依赖关系
 
 管理媒体文件（照片、视频、音频）的持久化存储。
 
@@ -342,6 +419,7 @@ flowchart LR
     Storage --> DataBackup[data-backup]
 
     FileSystem[FileSystem] --> MediaStorage[media-storage]
+    FileSystem --> MediaMigration[media-migration]
     FileSystem --> DataBackup
 
     JourneyStorage --> JourneyPage[旅程时间线页面]
@@ -352,7 +430,10 @@ flowchart LR
 
     TrackUtils[track-utils] --> ExplorePage[旅程回顾页面]
     MediaStorage --> JourneyPage
+    MediaMigration[media-migration] --> JourneyPage
     ReverseGeocode[reverse-geocode] --> LocationPicker
     ReverseGeocode --> JourneyPage
+    BackgroundLocation[background-location] --> JourneyPage
+    LocationTracking[use-location-tracking] --> JourneyPage
     LocalLog --> AllPages[所有页面]
 ```

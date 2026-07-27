@@ -51,6 +51,7 @@ GoWherer provides a set of core capabilities designed around "recording journeys
 - One-click Backup: Export journey data, template configuration, theme, and language preferences to a JSON file.
 - Import Restore: Restore all data from a backup file with version validation and format tolerance.
 - Selective Migration: Preserve journey records and personal templates during device migration.
+- Media Migration: Automatically migrate media files from the old cache directory to the app-managed directory, fixing broken references after upgrades.
 
 ### Location Tracking
 - Background Location Tracking: Automatically and continuously record GPS track points during an active journey.
