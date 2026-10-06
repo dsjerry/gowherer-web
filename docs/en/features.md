@@ -1,63 +1,36 @@
 # Features
 
-GoWherer provides a set of core capabilities designed around "recording journeys" to help you capture, review, and share your complete trajectory at low cost while traveling.
+GoWherer is designed around one complete trip: capture as you go with minimal interruption, let the app do the math when you arrive, and export for sharing whenever you like. All data stays on your own phone.
 
-## Core Features
-
-### Journey Management
-- Start/End Journey: Manage a complete trip with simple operations.
-- History Records: Quickly browse historical journeys by time.
-- Tag System: Tag journeys and entries for easy retrieval.
-- Journey Types: Distinguish between "Travel" and "Commute" modes.
+## On the Road: Capture Without Interrupting Your Trip
 
 ### Timeline Recording
-- Multiple Record Types: Support text, location, photo, video, and audio.
-- Media Import: Select images and videos from system albums.
-- Entry Editing: Support modifying or deleting recorded content.
-- Audio Recording: Record voice memos with automatic association to the current timeline point.
+- **One Multimedia Timeline**: Text, location, photos, video, and voice — a whole trip on a single page, replayed in order later.
+- **Template Quick Entry**: Built-in "Departure / Arrival / Rest / Checkpoint" templates fill preset text and tags in one tap; Travel and Commute keep separate collections, and custom templates are welcome.
+- **Transportation Cost on the Go**: Metro, rail, bus, taxi, flight — pick a mode, add the fare, and the journey total is summed automatically.
 
-### Journey Templates
-- Built-in Templates: Pre-configured templates for "Departure", "Arrival", "Rest", and "Checkpoint".
-- Dual-mode Templates: Separate template collections for Travel and Commute modes.
-- Quick Entry: Select a template to generate preset text and tags in one tap.
-- Template Management: Add, edit, and delete custom templates.
+### Automatic Location & Tracks
+- **Background Track Recording**: Toggle it on and GoWherer continuously records GPS points, smoothed to reduce drift, with mileage accumulated via the Haversine formula.
+- **Automatic Place Names**: Reverse geocoding turns coordinates into readable names, accelerated by a local grid cache that saves data and time.
+- **Map Location Picker**: Tap the map or a nearby POI to pick a location; coordinates convert automatically between Amap and GPS systems.
 
-### Geographic Capabilities
-- Real-time Positioning: Automatically get current location.
-- Place Name Resolution: Convert coordinates to readable addresses (via Amap Web Service).
-- Coordinate Conversion: Built-in WGS84 ↔ GCJ02 conversion algorithms for Amap SDK integration.
-- Nearby Places Query: Search for points of interest around the current location.
+## After the Trip: Review at a Glance
 
-### Maps & Routes
-- Amap SDK Integration: Mobile uses Amap SDK for map display and location picking.
-- Web Map Fallback: Automatically enable online maps on web pages for cross-platform experience.
-- Trajectory Display: Visualize travel paths in chronological order with cumulative mileage.
-- Map Location Picker: Tap on the map to select location, supports current position and nearby places list.
+- **Journey Statistics**: Total distance, duration, average speed, and location points — computed automatically when the journey ends.
+- **Segment Statistics**: Pick any start/end entries to see that segment's distance, duration, and average speed, highlighted on the map.
+- **Review List & Detail Page**: Scan all journeys as summary cards, then open a detail page to revisit the timeline, photo wall, and track map.
+- **Search & Filters**: Type (Travel/Commute), tags, and keywords help you find any past trip in seconds.
 
-### Statistics & Export
-- Trip Statistics: Automatically calculate distance, duration, average speed, and other metrics.
-- PDF Export: Export route map and statistics summary, suitable for archiving and sharing.
-- Journey Search: Search historical journeys by title, text, location, or tags keywords.
-- Tag Filtering: Filter journeys by type (Travel/Commute) and tags on the explore page.
+## Ready to Share: One-Tap Export
 
-### Theme & Experience
-- Theme Switching: Light/Dark theme with optional System preference sync.
-- Preference Persistence: Automatically remember theme and language selections.
-- Permission Management: Dedicated page to manage location, camera, and microphone permissions.
-- Interactive Animations: Smooth and natural page feedback with haptic responses.
-- Local Logging: Built-in logging system with log file export for error tracking and debugging.
+- **PDF Report**: Track map, stats summary, timeline details, and cost table in one document, with two built-in templates — "Classic" (teal cover) and "Compact" (single page).
+- **Long Image Sharing**: The report renders into a single long image, ready for social media or group chats — no screenshot stitching.
 
-### Data Backup & Migration
-- One-click Backup: Export journey data, template configuration, theme, and language preferences to a JSON file.
-- Import Restore: Restore all data from a backup file with version validation and format tolerance.
-- Selective Migration: Preserve journey records and personal templates during device migration.
-- Media Migration: Automatically migrate media files from the old cache directory to the app-managed directory, fixing broken references after upgrades.
+## Built to Last: Your Data Stays Safe
 
-### Location Tracking
-- Background Location Tracking: Automatically and continuously record GPS track points during an active journey.
-- Track Smoothing: Apply weighted smoothing to reduce GPS drift and noise.
-- Mileage Statistics: Calculate cumulative travel distance using the Haversine formula.
-- Media Persistence: Automatically copy photos, videos, and audio to app-managed directory to prevent reference invalidation.
+- **Backup & Restore**: Journeys, templates, and preferences export to one JSON file; restoring on a new phone just works.
+- **Storage Governance**: Media files are hosted in an app-managed directory, cascade-cleaned on delete, with orphan scanning to reclaim space.
+- **Nice Details**: Light/dark theme, English/Chinese UI, haptic feedback, and local log export for troubleshooting.
 
 ## Interface Preview
 
@@ -69,3 +42,5 @@ GoWherer provides a set of core capabilities designed around "recording journeys
   <img src="/05.jpg" alt="Statistics Summary" style="width: 100%; border-radius: 8px;" />
   <img src="/06.jpg" alt="Export Preview" style="width: 100%; border-radius: 8px;" />
 </div>
+
+Ready to try it? Head over to the [download page](/en/download) to install GoWherer.

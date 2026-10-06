@@ -16,7 +16,7 @@ Handles persistence of `Journey` arrays to AsyncStorage.
 async function loadJourneys(): Promise<Journey[]>
 ```
 
-Loads all journey data from AsyncStorage. Returns an empty array if storage is empty or parsing fails. Automatically normalizes tags (deduplication, whitespace trimming) and media items (filters invalid entries) during load.
+Loads all journey data from AsyncStorage. Returns an empty array if storage is empty or parsing fails. Automatically normalizes tags (deduplication, whitespace trimming), media items (filters invalid entries), and `trackLocations` (fills in an empty array when missing) during load.
 
 **Storage Key**: `gowherer:journeys:v1`
 
@@ -30,169 +30,206 @@ Serializes and writes all journey data to AsyncStorage.
 
 ---
 
-### Template Storage (`lib/template-storage.ts`)
+### Journey Repository (`lib/journey-repository.ts`)
 
-Manages the configuration of journey entry templates.
+The unified write entry for journey data. All mutations run through an internal write queue to prevent data loss from concurrent reads/writes; after each change it diffs the before/after state and cascade-deletes media files that are no longer referenced.
 
-#### `getDefaultEntryTemplateConfig()`
+#### `createJourney(title, kind, tags)`
 
-```typescript
-function getDefaultEntryTemplateConfig(): EntryTemplateConfig
-```
+Creates a new in-progress journey.
 
-Returns the default template configuration, containing separate template sets for Travel and Commute modes, each with 4 built-in templates: Departure, Arrival, Rest, Checkpoint.
+#### `markJourneyCompleted(journeyId)`
 
-#### `loadEntryTemplateConfig()`
+Ends a journey (`active` → `completed`, writes `endedAt`).
 
-```typescript
-async function loadEntryTemplateConfig(): Promise<EntryTemplateConfig>
-```
+#### `insertJourneyEntry(journeyId, entry)` / `replaceJourneyEntry(journeyId, entry)` / `deleteJourneyEntry(journeyId, entryId)`
 
-Loads template configuration from AsyncStorage. Returns default configuration if storage is empty or parsing fails.
+Inserts, updates, and deletes timeline entries; deleting an entry also cleans up its media files.
 
-**Storage Key**: `gowherer:entry-templates:v1`
+#### `appendJourneyTrackLocations(journeyId, locations)`
 
-#### `saveEntryTemplateConfig(config)`
+Batch-appends buffered background tracking points to the given journey.
 
-```typescript
-async function saveEntryTemplateConfig(config: EntryTemplateConfig): Promise<void>
-```
+#### `deleteJourney(journeyId)` / `overwriteJourneys(journeys)`
 
-Serializes and writes template configuration to AsyncStorage.
+Deletes an entire journey (with media cascade cleanup), or overwrites the whole journey list (used by backup restore).
 
 ---
 
-### Template i18n Storage (`lib/template-storage-i18n.ts`)
+### Template Storage (`lib/template-storage.ts` / `lib/template-storage-i18n.ts`)
 
-Supports storing template configurations separately by locale.
+Manages the configuration of journey entry templates with per-locale storage.
 
 #### `getDefaultEntryTemplateConfig(locale)`
 
-```typescript
-function getDefaultEntryTemplateConfig(locale: Locale): EntryTemplateConfig
-```
+Returns the default template configuration for the given locale, containing separate template sets for Travel and Commute modes, each with 4 built-in templates: Departure, Arrival, Rest, Checkpoint.
 
-Returns the default template configuration for the specified locale.
+#### `loadEntryTemplateConfig(locale)` / `saveEntryTemplateConfig(locale, config)`
 
-#### `loadEntryTemplateConfig(locale)`
-
-```typescript
-async function loadEntryTemplateConfig(locale: Locale): Promise<EntryTemplateConfig>
-```
-
-Loads template configuration from the locale-specific storage key.
+Reads/writes template configuration from/to the locale-specific storage key, falling back to defaults when parsing fails.
 
 **Storage Keys**: `gowherer:entry-templates:v1:zh` (Chinese), `gowherer:entry-templates:v1:en` (English)
-
-#### `saveEntryTemplateConfig(locale, config)`
-
-```typescript
-async function saveEntryTemplateConfig(locale: Locale, config: EntryTemplateConfig): Promise<void>
-```
-
-Writes template configuration to the locale-specific storage key.
 
 ---
 
 ### Pending Location (`lib/pending-location.ts`)
 
-Temporarily stores a user-selected location during the map picker flow, for later consumption.
+Temporarily stores the location selected on the map picker for later consumption.
 
-#### `setPendingLocation(location)`
+#### `setPendingLocation(location)` / `consumePendingLocation()`
 
-```typescript
-async function setPendingLocation(location: TimelineLocation): Promise<void>
-```
-
-Stores the selected location to AsyncStorage.
+One-shot location handoff: write, then read-and-delete. Returns `null` on read failure.
 
 **Storage Key**: `gowherer:pending-location:v1`
 
-#### `consumePendingLocation()`
+---
+
+## Statistics Service (`lib/journey-stats.ts`)
+
+The unified outlet for trip statistics, segment statistics, and display formatting.
+
+#### `computeJourneyStats(journey, trackLocations?)`
 
 ```typescript
-async function consumePendingLocation(): Promise<TimelineLocation | null>
+function computeJourneyStats(
+  journey: Journey,
+  trackLocations?: TimelineLocation[]
+): { locationPoints: number; distanceKm: number; durationMs: number; avgSpeedKmh: number }
 ```
 
-Reads and deletes the pending location. Returns the location data; returns `null` if none exists or parsing fails.
+Computes total distance (preferring GPS track, falling back to entry locations), total duration, average speed, and location point count.
+
+#### `computeSegmentStats(journey, trackLocations, startIndex, endIndex)`
+
+```typescript
+function computeSegmentStats(
+  journey: Journey,
+  trackLocations: TimelineLocation[],
+  startIndex: number,
+  endIndex: number
+): SegmentStats
+```
+
+Computes segment statistics between two record points: segment duration, segment distance (summing GPS track points whose `capturedAt` falls between the two entries, falling back to the straight-line distance), and segment average speed, plus the `segmentTrack` used for map highlighting.
+
+#### `getSegmentStats(journey, trackLocations, journeyId, startIndex, endIndex)`
+
+Cached wrapper (keyed by `journeyId:start:end`) that avoids recomputing thousands of track points on every dropdown toggle.
+
+#### Formatting Utilities
+
+- `formatDateTime(iso?)`: `MM/dd HH:mm` display.
+- `formatDuration(durationMs, t)`: localized duration text.
+- `formatLocationLabel(location)`: place name + coordinates.
+- `kindLabel(kind, t)`: journey kind text.
+- `getJourneyTrackLocations(journey)` / `getJourneyEntryLocations(journey)` / `getJourneyTrackMapMarkerLocations(journey, trackLocations?)`: sanitized track/marker collections.
 
 ---
 
-## Track Services (`lib/track-utils.ts`)
+## Transportation Cost (`lib/journey-cost.ts`)
 
-Provides GPS track point processing and statistics capabilities.
+#### `sumJourneyCosts(journey)`
+
+```typescript
+function sumJourneyCosts(journey: Journey): number
+```
+
+Sums `cost.amount` across all entries (rounded through cents to avoid floating point drift) and returns the journey total (CNY).
+
+#### `formatCostAmount(amount)`
+
+Amount display: integers without decimals, otherwise two decimal places.
+
+#### `JOURNEY_COST_MODES`
+
+All transport modes: `metro`, `rail`, `bus`, `taxi`, `flight`, `other`.
+
+---
+
+## Export Services
+
+### PDF Export (`lib/journey-pdf.ts`)
+
+#### `exportJourneyPdf(journey, t, templateId?)`
+
+```typescript
+async function exportJourneyPdf(
+  journey: Journey,
+  t: TFunction,
+  templateId: ReportTemplateId
+): Promise<void>
+```
+
+Generates the journey report as PDF with the selected template: builds HTML (track map, stats, timeline details, and cost table) → renders via `expo-print` → names the file after the journey title and opens the system share sheet. On web it invokes the browser print dialog directly.
+
+#### `buildTrackImage(...)`
+
+Generates an SVG from track points and renders it to a bitmap embedded in the PDF as the route preview; tracks with too many points are simplified first (`simplifyTrackLocations`).
+
+#### Media Embedding
+
+Photos are downscaled (max edge 1280px) and re-encoded as JPEG (0.7 quality) before being inlined as base64, keeping multi-photo journeys from producing gigantic documents; video covers use `expo-video-thumbnails`.
+
+### Report Templates (`lib/report-templates.ts`)
+
+```typescript
+export type ReportTemplateId = 'classic' | 'compact';
+export const REPORT_TEMPLATES: ReportTemplateId[];
+export const DEFAULT_REPORT_TEMPLATE: ReportTemplateId; // 'classic'
+```
+
+- `classic`: teal cover · timeline cards · cost table.
+- `compact`: single-page tight layout · blue tone.
+
+### Long Image Export (`app/journey-detail.tsx`)
+
+The detail page renders the report view off-screen and captures it with `react-native-view-shot` into a long image for saving and sharing on social platforms.
+
+---
+
+## Track Service (`lib/track-utils.ts`)
+
+Provides GPS track point processing and measurement.
 
 #### `sanitizeTrackLocations(locations)`
 
-```typescript
-function sanitizeTrackLocations(
-  locations: Array<TimelineLocation | null | undefined>
-): TimelineLocation[]
-```
-
-Filters and normalizes the track point list, removing invalid coordinates (out-of-range latitude/longitude or non-numeric values).
+Filters and normalizes the track point list, removing invalid coordinates (out-of-range or non-numeric latitude/longitude).
 
 #### `haversineKm(a, b)`
 
-```typescript
-function haversineKm(a: TimelineLocation, b: TimelineLocation): number
-```
-
-Calculates the great-circle distance between two points using the Haversine formula (result in kilometers).
+Great-circle distance between two points using the Haversine formula (kilometers).
 
 #### `smoothTrackLocations(locations)`
 
-```typescript
-function smoothTrackLocations(locations: TimelineLocation[]): TimelineLocation[]
-```
+Weighted smoothing (25% weight for adjacent points, 50% for the middle point); first and last points stay unchanged.
 
-Applies weighted smoothing to track points (25% weight for adjacent points, 50% for the center point). First and last points remain unchanged. Returns the original list if fewer than 3 points.
+#### `prepareTrackRouteLocations(locations)`
+
+Builds the point sequence for route drawing (track points and entry locations merged by time and deduplicated).
+
+#### `simplifyTrackLocations(locations, maxPoints = 200)`
+
+Distance-based point simplification for map rendering and export imagery, capped at a maximum point count.
 
 #### `calculateTrackDistanceKm(locations)`
 
-```typescript
-function calculateTrackDistanceKm(locations: TimelineLocation[]): number
-```
-
-Calculates total track distance (in kilometers). Sequentially applies the Haversine formula to accumulate distances between adjacent points.
+Total track length (kilometers), accumulating Haversine distances between consecutive points.
 
 ---
 
-## Geocoding (`lib/reverse-geocode.ts`)
-
-Provides place name resolution and coordinate system conversion.
+## Geocoding (`lib/reverse-geocode.ts` + `lib/geocode-cache.ts`)
 
 ### Coordinate Conversion
 
-#### `toGcj02(latitude, longitude)`
+#### `toGcj02(latitude, longitude)` / `toWgs84(latitude, longitude)`
 
-```typescript
-function toGcj02(latitude: number, longitude: number): { latitude: number; longitude: number }
-```
-
-Converts WGS84 coordinates to GCJ02 (China Geodetic Coordinate System 2000) for use with Amap. Returns original values if coordinates are outside China.
-
-#### `toWgs84(latitude, longitude)`
-
-```typescript
-function toWgs84(latitude: number, longitude: number): { latitude: number; longitude: number }
-```
-
-Converts GCJ02 coordinates back to WGS84. Returns original values if coordinates are outside China.
+WGS84 ↔ GCJ02 conversion; coordinates outside mainland China are returned unchanged.
 
 ### Place Name Resolution
 
 #### `reverseGeocodePlaceName(latitude, longitude, options?)`
 
-```typescript
-async function reverseGeocodePlaceName(
-  latitude: number,
-  longitude: number,
-  options?: { coordinateType?: CoordinateType }
-): Promise<string | undefined>
-```
-
-Converts coordinates to a human-readable place name. Prioritizes Amap Web API (requires `EXPO_PUBLIC_AMAP_WEB_KEY` configured). Falls back to system native geocoding if Amap call fails or the key is not configured.
+Converts coordinates into a readable place name. Prefers the Amap Web API (requires `EXPO_PUBLIC_AMAP_WEB_KEY`) and falls back to system-native geocoding on failure or when the key is missing.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -200,22 +237,22 @@ Converts coordinates to a human-readable place name. Prioritizes Amap Web API (r
 | `longitude` | `number` | Longitude |
 | `options.coordinateType` | `CoordinateType` | Input coordinate type, defaults to `wgs84` |
 
-Returns the place name string; returns `undefined` if both methods fail.
+### Geocode Cache (`lib/geocode-cache.ts`)
+
+A local cache keyed by ~110-meter lat/lng grids:
+
+- Cache hits skip the network; misses trigger resolution.
+- Two-layer storage: in-memory map + AsyncStorage with delayed batch flush (2 seconds).
+- Capacity capped at 500 entries with oldest-first eviction.
+- Concurrent requests for the same grid are deduplicated into a single network call.
+
+**Storage Key**: `gowherer:geocode-cache:v1`
 
 ### Nearby Places Query
 
 #### `queryNearbyPlaces(latitude, longitude, radius?, options?)`
 
-```typescript
-async function queryNearbyPlaces(
-  latitude: number,
-  longitude: number,
-  radius?: number,
-  options?: { coordinateType?: CoordinateType }
-): Promise<NearbyPlace[]>
-```
-
-Queries the list of POIs around the specified coordinates (via Amap Web API). Only works when the Amap key is properly configured; otherwise returns an empty array.
+Queries the POI list around the given coordinates (via the Amap Web API). Only works with a correctly configured Amap key; otherwise returns an empty array.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -226,175 +263,35 @@ Queries the list of POIs around the specified coordinates (via Amap Web API). On
 
 ---
 
-## Local Logging (`lib/local-log.ts`)
+## Location Services
 
-In-app logging system that writes logs to a local file for error tracking and debugging.
+### Current Location (`lib/current-location.ts`)
 
-#### `logLocalInfo(tag, message, data?)`
+#### `getBestCurrentTimelineLocation(options?)`
 
-```typescript
-async function logLocalInfo(tag: string, message: string, data?: unknown): Promise<void>
-```
+Attempts to fetch the current location multiple times (default 12s timeout, 50m target accuracy, 5s per attempt, 800ms interval) and returns the most accurate `TimelineLocation`; the coordinate system is inferred automatically (GCJ02 from the Amap SDK, WGS84 from `expo-location`).
 
-Logs an info-level entry. Format: `[ISO timestamp] [INFO] [tag] message | data`
+#### `requestForegroundLocationAccess()`
 
-#### `logLocalError(tag, error, data?)`
+Requests foreground location permission.
 
-```typescript
-async function logLocalError(tag: string, error: unknown, data?: unknown): Promise<void>
-```
+#### `toTimelineLocation(coordinates, options?)`
 
-Logs an error-level entry. Error objects are serialized to `{ message, stack }` format.
+Converts SDK coordinates into a `TimelineLocation`.
 
-#### `getLocalLogFileUri()`
+### Background Location (`lib/background-location.ts`)
 
-```typescript
-function getLocalLogFileUri(): string
-```
+Background GPS tracking built on `expo-gaode-map` and `expo-task-manager`.
 
-Returns the log file path URI for sharing/exporting.
+#### `startLocationTracking(journeyId)` / `stopLocationTracking()`
 
-#### `initLocalLogFile()`
+Starts/stops background tracking; track points are buffered to AsyncStorage and periodically batch-appended to the journey's `trackLocations` via the journey repository.
 
-```typescript
-async function initLocalLogFile(): Promise<void>
-```
+#### `isLocationTrackingActive()` / `syncBufferedTrackLocations()`
 
-Initializes the log file and writes an initialization record.
+Checks tracking task status; flushes the buffer manually.
 
-**Log File Path**: `${FileSystem.documentDirectory}gowherer-debug.log`
-
----
-
-## Data Backup (`lib/data-backup.ts`)
-
-Provides application data export and import for cross-device migration.
-
-### `buildAppBackup(appVersion)`
-
-```typescript
-async function buildAppBackup(appVersion: string): Promise<AppBackupV1>
-```
-
-Builds a complete backup containing journeys, templates, theme, and locale preferences.
-
-**Returns**: `AppBackupV1` object
-
-### `writeBackupToFile(backup)`
-
-```typescript
-async function writeBackupToFile(backup: AppBackupV1): Promise<{ fileName: string; uri: string }>
-```
-
-Writes backup data to a JSON file in the cache directory.
-
-### `serializeBackup(backup)`
-
-```typescript
-function serializeBackup(backup: AppBackupV1): string
-```
-
-Serializes backup to JSON string for sharing or copying.
-
-### `parseBackupString(raw)`
-
-```typescript
-function parseBackupString(raw: string): AppBackupV1
-```
-
-Parses backup JSON string with version validation and format tolerance.
-
-### `importBackup(backup)`
-
-```typescript
-async function importBackup(backup: AppBackupV1): Promise<ImportResult>
-```
-
-Writes backup data to AsyncStorage to complete data restoration.
-
----
-
-## Media Storage (`lib/media-storage.ts`)
-
-Manages persistent storage of media files (photos, videos, audio).
-
-### `persistTimelineMedia(mediaItems)`
-
-```typescript
-async function persistTimelineMedia(mediaItems: TimelineMedia[]): Promise<TimelineMedia[]>
-```
-
-Copies media files to the app-managed directory `gowherer-media/`, returning media list with updated URIs. Already managed files are skipped.
-
-**Media Directory**: `${FileSystem.documentDirectory}gowherer-media/`
-
----
-
-## Media Migration (`lib/media-migration.ts`)
-
-Migrates media files from the old cache directory to the app-managed directory, fixing broken media references after app upgrades.
-
-### `getMediaMigrationStats()`
-
-```typescript
-async function getMediaMigrationStats(): Promise<{ hasOldMedia: boolean; oldFileCount: number }>
-```
-
-Checks if the old cache directory (`cacheDirectory/ImagePicker/`) has leftover media files.
-
-### `migrateOldMedia(journeys)`
-
-```typescript
-async function migrateOldMedia(journeys: Journey[]): Promise<{ migrated: number; failed: number }>
-```
-
-Moves media files from the old cache directory to `gowherer-media/` and updates all URI references in Journey data.
-
----
-
-## Background Location (`lib/background-location.ts`)
-
-Background GPS tracking based on `expo-gaode-map` and `expo-task-manager`.
-
-### `startLocationTracking(journeyId)`
-
-```typescript
-async function startLocationTracking(journeyId: string): Promise<void>
-```
-
-Starts background location tracking, buffering track points to AsyncStorage and periodically batch-appending to the Journey's `trackLocations`.
-
-### `stopLocationTracking()`
-
-```typescript
-async function stopLocationTracking(): Promise<void>
-```
-
-Stops background location tracking.
-
-### `isLocationTrackingActive()`
-
-```typescript
-async function isLocationTrackingActive(): Promise<boolean>
-```
-
-Checks if a tracking session is currently active.
-
-### `syncBufferedTrackLocations()`
-
-```typescript
-async function syncBufferedTrackLocations(): Promise<void>
-```
-
-Flushes buffered track points to Journey data.
-
----
-
-## Location Tracking Hook (`hooks/use-location-tracking.ts`)
-
-React Hook wrapping background location tracking for use in page components.
-
-### `useLocationTracking(activeJourney, onRefreshJourneys?)`
+### Tracking Hook (`hooks/use-location-tracking.ts`)
 
 ```typescript
 function useLocationTracking(
@@ -403,37 +300,127 @@ function useLocationTracking(
 ): { locationTracking: boolean; trackingBusy: boolean; toggleTracking: () => void }
 ```
 
-Automatically manages background location start/stop based on current journey state, returning tracking status and toggle method.
+Manages background tracking start/stop based on the active journey state.
 
 ---
 
-## Service Dependency Graph
+## Media Storage (`lib/media-storage.ts`)
+
+Manages persistence and governance of media files (photos, videos, audio).
+
+**Media Directory**: `${FileSystem.documentDirectory}gowherer-media/`
+
+#### `persistTimelineMedia(mediaItems)`
+
+Copies media files into the app-managed directory and returns the list with updated URIs. Already-hosted files are skipped.
+
+#### `diffManagedMediaUris(before, after)`
+
+Compares two journey snapshots and finds managed media URIs that are no longer referenced.
+
+#### `deleteMediaFiles(uris)`
+
+Deletes the given media files.
+
+#### `scanMediaStorage(journeys)`
+
+Scans the managed directory and returns a storage report (file count, disk usage, orphan list).
+
+#### `deleteOrphanMediaFiles(journeys)`
+
+Deletes orphaned media files no longer referenced by any journey (the "Media Storage Cleanup" entry in Settings).
+
+### Media Migration (`lib/media-migration.ts`)
+
+Migrates media files from the legacy cache directory to the app-managed directory, fixing broken references after upgrades.
+
+#### `getMediaMigrationStats()`
+
+Checks whether the old cache directory still holds media files.
+
+#### `migrateOldMedia(journeys)`
+
+Moves the old media files and updates every affected URI reference in journeys.
+
+---
+
+## Data Backup (`lib/data-backup.ts`)
+
+Provides app data export/import for cross-device migration.
+
+#### `buildAppBackup(appVersion)` / `writeBackupToFile(backup)` / `serializeBackup(backup)`
+
+Builds the full backup (journeys, templates, theme and language preferences), writes it to a JSON file, and serializes it to a string.
+
+#### `parseBackupString(raw)` / `importBackup(backup)`
+
+Parses the backup string (with version validation and format tolerance) and writes it to AsyncStorage to complete the restore.
+
+---
+
+## Open Source Licenses (`lib/license-catalog.ts`)
+
+A static license catalog backed by `assets/licenses.json` (generated by `scripts/generate-licenses.js` from the full production dependency tree via `license-checker`).
+
+Provides loading and searching over the dependency list for the licenses page: direct dependencies pinned first, filterable by license type, searchable by name/version.
+
+---
+
+## Amap Privacy Compliance (`lib/amap-privacy.ts`)
+
+#### `ensureAmapPrivacyReady()`
+
+Completes Amap SDK privacy-compliance initialization (with compliance version) before any SDK use; skipped on web and idempotent on repeat calls.
+
+---
+
+## Local Log (`lib/local-log.ts`)
+
+An in-app logging system that writes to a local file for error tracking and troubleshooting.
+
+#### `logLocalInfo(tag, message, data?)` / `logLocalError(tag, error, data?)`
+
+Records info/error level logs; Error objects are serialized as `{ message, stack }`.
+
+#### `getLocalLogFileUri()` / `initLocalLogFile()`
+
+Gets the log file URI (for sharing/export); initializes the log file.
+
+**Log File Path**: `${FileSystem.documentDirectory}gowherer-debug.log`
+
+---
+
+## Service Dependencies
 
 ```mermaid
 flowchart LR
     Storage[AsyncStorage] --> JourneyStorage[journey-storage]
-    Storage --> TemplateStorage[template-storage]
     Storage --> TemplateI18n[template-storage-i18n]
     Storage --> PendingLocation[pending-location]
     Storage --> LocalLog[local-log]
     Storage --> DataBackup[data-backup]
+    Storage --> GeocodeCache[geocode-cache]
 
     FileSystem[FileSystem] --> MediaStorage[media-storage]
     FileSystem --> MediaMigration[media-migration]
     FileSystem --> DataBackup
 
-    JourneyStorage --> JourneyPage[Timeline Page]
-    TemplateStorage --> JourneyPage
-    TemplateI18n --> JourneyPage
-    PendingLocation --> LocationPicker[Map Picker Page]
-    DataBackup --> SettingsPage[Settings Page]
+    JourneyStorage --> JourneyRepo[journey-repository]
+    MediaStorage --> JourneyRepo
+    JourneyRepo --> JourneyPages[Journey/Review/Detail pages]
 
-    TrackUtils[track-utils] --> ExplorePage[Explore Page]
-    MediaStorage --> JourneyPage
-    MediaMigration --> JourneyPage
-    ReverseGeocode[reverse-geocode] --> LocationPicker
-    ReverseGeocode --> JourneyPage
-    BackgroundLocation[background-location] --> JourneyPage
-    LocationTracking[use-location-tracking] --> JourneyPage
-    LocalLog --> AllPages[All Pages]
+    JourneyStats[journey-stats] --> JourneyPages
+    JourneyStats --> JourneyPdf[journey-pdf]
+    JourneyCost[journey-cost] --> JourneyPages
+    ReportTemplates[report-templates] --> JourneyPdf
+    JourneyPdf --> DetailPage[Journey detail page]
+
+    TrackUtils[track-utils] --> JourneyStats
+    TrackUtils --> TrackMap[Track map components]
+    GeocodeCache --> ReverseGeocode[reverse-geocode]
+    ReverseGeocode --> LocationPicker[Map picker page]
+    CurrentLocation[current-location] --> LocationPicker
+    BackgroundLocation[background-location] --> TrackingHook[use-location-tracking]
+    TrackingHook --> JourneyPages
+    LocalLog --> AllPages[All pages]
 ```

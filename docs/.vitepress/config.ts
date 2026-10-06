@@ -7,23 +7,38 @@ export default defineConfig({
             lang: "zh-CN",
             title: "GoWherer",
             description:
-                "记录你的旅程，回顾精彩时刻 - 基于 Expo React Native 的旅行时间线应用",
+                "GoWherer —— 把每一次出行变成可回顾、可分享的旅程时间线。记录文字、照片、语音、GPS 轨迹与交通费，一键导出 PDF 与长图。免费开源的 Android 应用。",
             themeConfig: {
                 nav: [
                     { text: "首页", link: "/" },
                     { text: "功能特色", link: "/features" },
-                    { text: "技术栈", link: "/tech" },
-                    { text: "快速开始", link: "/getting-started" },
                     { text: "下载", link: "/download" },
+                    { text: "关于", link: "/about" },
+                    {
+                        text: "开发者",
+                        items: [
+                            { text: "快速开始", link: "/getting-started" },
+                            { text: "技术栈", link: "/tech" },
+                            { text: "数据类型", link: "/data-models" },
+                            { text: "服务接口", link: "/services" },
+                        ],
+                    },
                 ],
                 sidebar: [
                     {
-                        text: "指南",
+                        text: "产品",
                         items: [
-                            { text: "首页", link: "/" },
                             { text: "功能特色", link: "/features" },
-                            { text: "技术栈", link: "/tech" },
+                            { text: "下载", link: "/download" },
+                            { text: "关于与反馈", link: "/about" },
+                        ],
+                    },
+                    {
+                        text: "开发者文档",
+                        collapsed: true,
+                        items: [
                             { text: "快速开始", link: "/getting-started" },
+                            { text: "技术栈", link: "/tech" },
                             { text: "数据类型", link: "/data-models" },
                             { text: "服务接口", link: "/services" },
                         ],
@@ -31,11 +46,11 @@ export default defineConfig({
                 ],
                 footer: {
                     message: "基于 MIT 许可证发布",
-                    copyright: "Copyright © 2025 GoWherer",
+                    copyright: "Copyright © 2025–2026 GoWherer",
                 },
                 editLink: {
                     pattern:
-                        "https://github.com/dsjerry/gowherer/edit/main/docs/:path",
+                        "https://github.com/dsjerry/gowherer-web/edit/main/docs/:path",
                     text: "在 GitHub 上编辑此页",
                 },
                 lastUpdated: {
@@ -57,26 +72,41 @@ export default defineConfig({
             link: "/en/",
             title: "GoWherer",
             description:
-                "Record your journeys, revisit wonderful moments - A travel timeline app based on Expo React Native",
+                "GoWherer — turn every trip into a shareable journey timeline. Capture text, photos, voice, GPS tracks and fares, then export a PDF or long image in one tap. Free and open source for Android.",
             themeConfig: {
                 nav: [
                     { text: "Home", link: "/en/" },
                     { text: "Features", link: "/en/features" },
-                    { text: "Tech Stack", link: "/en/tech" },
-                    { text: "Getting Started", link: "/en/getting-started" },
                     { text: "Download", link: "/en/download" },
+                    { text: "About", link: "/en/about" },
+                    {
+                        text: "Developers",
+                        items: [
+                            { text: "Getting Started", link: "/en/getting-started" },
+                            { text: "Tech Stack", link: "/en/tech" },
+                            { text: "Data Models", link: "/en/data-models" },
+                            { text: "Services", link: "/en/services" },
+                        ],
+                    },
                 ],
                 sidebar: [
                     {
-                        text: "Guide",
+                        text: "Product",
                         items: [
-                            { text: "Home", link: "/en/" },
                             { text: "Features", link: "/en/features" },
-                            { text: "Tech Stack", link: "/en/tech" },
+                            { text: "Download", link: "/en/download" },
+                            { text: "About & Feedback", link: "/en/about" },
+                        ],
+                    },
+                    {
+                        text: "Developers",
+                        collapsed: true,
+                        items: [
                             {
                                 text: "Getting Started",
                                 link: "/en/getting-started",
                             },
+                            { text: "Tech Stack", link: "/en/tech" },
                             { text: "Data Models", link: "/en/data-models" },
                             { text: "Services", link: "/en/services" },
                         ],
@@ -84,11 +114,11 @@ export default defineConfig({
                 ],
                 footer: {
                     message: "Released under the MIT License",
-                    copyright: "Copyright © 2025 GoWherer",
+                    copyright: "Copyright © 2025–2026 GoWherer",
                 },
                 editLink: {
                     pattern:
-                        "https://github.com/dsjerry/gowherer/edit/main/docs/:path",
+                        "https://github.com/dsjerry/gowherer-web/edit/main/docs/:path",
                     text: "Edit this page on GitHub",
                 },
                 lastUpdated: {

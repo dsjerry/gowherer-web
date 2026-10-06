@@ -41,10 +41,15 @@ gowherer-web/
 │   │   ├── config.ts       # VitePress 配置
 │   │   └── theme/          # 自定义主题
 │   ├── public/             # 静态资源
-│   ├── index.md            # 首页
-│   ├── features.md         # 功能特性
-│   ├── tech.md             # 技术栈
-│   └── getting-started.md  # 快速开始
+│   ├── index.md            # 首页（宣传页）
+│   ├── features.md         # 功能特色（按使用场景组织）
+│   ├── download.md         # 下载与安装
+│   ├── about.md            # 关于与反馈
+│   ├── getting-started.md  # 开发者：快速开始
+│   ├── tech.md             # 开发者：技术栈
+│   ├── data-models.md      # 开发者：数据类型
+│   ├── services.md         # 开发者：服务接口
+│   └── en/                 # 英文版（与中文一一对应）
 └── package.json
 ```
 

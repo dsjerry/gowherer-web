@@ -44,6 +44,29 @@ export type MediaType = 'photo' | 'video' | 'audio';
 | `video` | 视频 |
 | `audio` | 音频 |
 
+### JourneyCostMode
+
+交通费记录的交通方式。
+
+```typescript
+export type JourneyCostMode =
+  | 'metro'
+  | 'rail'
+  | 'bus'
+  | 'taxi'
+  | 'flight'
+  | 'other';
+```
+
+| 值 | 说明 |
+|----|------|
+| `metro` | 地铁 |
+| `rail` | 高铁/火车 |
+| `bus` | 公交 |
+| `taxi` | 打车 |
+| `flight` | 航班 |
+| `other` | 其他 |
+
 ### CoordinateType
 
 坐标系类型，用于区分 WGS84 和 GCJ02。
@@ -86,7 +109,7 @@ export type TimelineLocation = {
   placeName?: string;        // 地点名称（通过逆地理编码获取），可选
   capturedAt?: string;       // 采集时间（ISO 8601），可选
   source?: 'manual' | 'tracking'; // 来源：手动选点 | 后台追踪，可选
-  coordSystem?: 'wgs84' | 'gcj02'; // 坐标系，可选
+  coordSystem?: 'wgs84' | 'gcj02'; // 坐标系，可选（缺失视为历史数据，加载时迁移归一）
 };
 ```
 
@@ -103,6 +126,17 @@ export type TimelineMedia = {
 };
 ```
 
+### EntryCost
+
+记录条目上的交通费。
+
+```typescript
+export type EntryCost = {
+  mode: JourneyCostMode;      // 交通方式
+  amount: number;             // 金额（元），保留两位小数
+};
+```
+
 ### TimelineEntry
 
 时间线条目，即旅程中的一条记录。
@@ -115,6 +149,7 @@ export type TimelineEntry = {
   location?: TimelineLocation; // 关联的位置信息，可选
   media: TimelineMedia[];     // 媒体附件列表
   tags: string[];             // 标签列表
+  cost?: EntryCost;           // 本段交通花费，可选
 };
 ```
 
@@ -138,12 +173,12 @@ export type Journey = {
 
 ### EntryTemplate
 
-记录模板，用于快速录入预设文本与标签。
+记录模板（定义于 `types/template.ts`），用于快速录入预设文本与标签。
 
 ```typescript
 export type EntryTemplate = {
   id: string;                // 唯一标识符
-  label: string;              // 显示标签（中文）
+  label: string;              // 显示标签
   text: string;               // 模板预置文本内容
   tags: string[];             // 预置标签列表
 };
@@ -171,6 +206,19 @@ export type NearbyPlace = {
   longitude: number;           // 经度
 };
 ```
+
+### ReportTemplateId
+
+导出报告模板标识（定义于 `lib/report-templates.ts`）。
+
+```typescript
+export type ReportTemplateId = 'classic' | 'compact';
+```
+
+| 值 | 说明 |
+|----|------|
+| `classic` | 经典：青绿封面 · 时间线卡片 · 交通费表 |
+| `compact` | 简约：单页紧凑排版 · 蓝色基调 |
 
 ### LocalePreference
 
@@ -210,6 +258,7 @@ export type AppBackupV1 = {
 flowchart TD
     User[用户操作] --> JourneyMgmt[旅程管理]
     User --> TimelineEntry[时间线记录]
+    User --> Cost[交通费记录]
     User --> Template[模板记录]
     User --> Map[地图选点]
 
@@ -221,6 +270,7 @@ flowchart TD
     TimelineEntry -->|location| TimelineLocation
     TimelineEntry -->|media| TimelineMedia
     TimelineEntry -->|tags| TagList[标签列表]
+    TimelineEntry -->|cost| EntryCost
 
     Template -->|travel| TravelTemplate[旅行模板]
     Template -->|commute| CommuteTemplate[通勤模板]
@@ -237,14 +287,15 @@ flowchart TD
 
 ## 存储键
 
-所有数据通过 AsyncStorage 本地持久化，存储键前缀为 `gowherer:`。
+所有数据通过 AsyncStorage 本地持久化，存储键前缀为 `gowherer:`，集中定义在 `lib/storage-keys.ts`。
 
 | 存储键 | 数据类型 | 说明 |
 |--------|----------|------|
 | `gowherer:journeys:v1` | `Journey[]` | 所有旅程数据 |
-| `gowherer:entry-templates:v1` | `EntryTemplateConfig` | 模板配置 |
 | `gowherer:entry-templates:v1:zh` | `EntryTemplate[]` | 中文模板 |
 | `gowherer:entry-templates:v1:en` | `EntryTemplate[]` | 英文模板 |
 | `gowherer:pending-location:v1` | `TimelineLocation` | 待处理位置（地图选点后临时存储） |
 | `gowherer:locale-preference:v1` | `LocalePreference` | 语言偏好 |
 | `gowherer:theme-preference:v1` | `ThemePreference` | 主题偏好 |
+| `gowherer:review-filters:v1` | 回顾页筛选状态 | 类型/标签筛选与展开状态持久化 |
+| `gowherer:geocode-cache:v1` | `GeocodeCachePayload` | 逆地理编码本地缓存（约 110m 网格键，上限 500 条） |

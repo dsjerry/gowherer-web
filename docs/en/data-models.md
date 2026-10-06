@@ -44,6 +44,29 @@ export type MediaType = 'photo' | 'video' | 'audio';
 | `video` | Video |
 | `audio` | Audio |
 
+### JourneyCostMode
+
+Transport mode of a cost record.
+
+```typescript
+export type JourneyCostMode =
+  | 'metro'
+  | 'rail'
+  | 'bus'
+  | 'taxi'
+  | 'flight'
+  | 'other';
+```
+
+| Value | Description |
+|-------|-------------|
+| `metro` | Metro |
+| `rail` | Rail / train |
+| `bus` | Bus |
+| `taxi` | Taxi / ride-hailing |
+| `flight` | Flight |
+| `other` | Other |
+
 ### CoordinateType
 
 Coordinate system type, used to distinguish WGS84 and GCJ02.
@@ -86,7 +109,7 @@ export type TimelineLocation = {
   placeName?: string;        // Place name (via reverse geocoding), optional
   capturedAt?: string;       // Capture time (ISO 8601), optional
   source?: 'manual' | 'tracking'; // Source: manual picker | background tracking, optional
-  coordSystem?: 'wgs84' | 'gcj02'; // Coordinate system, optional
+  coordSystem?: 'wgs84' | 'gcj02'; // Coordinate system, optional (missing = legacy data, normalized on load)
 };
 ```
 
@@ -103,6 +126,17 @@ export type TimelineMedia = {
 };
 ```
 
+### EntryCost
+
+Transportation cost attached to a timeline entry.
+
+```typescript
+export type EntryCost = {
+  mode: JourneyCostMode;      // Transport mode
+  amount: number;             // Amount (CNY), up to two decimal places
+};
+```
+
 ### TimelineEntry
 
 A single entry on the journey timeline.
@@ -115,6 +149,7 @@ export type TimelineEntry = {
   location?: TimelineLocation; // Associated location, optional
   media: TimelineMedia[];    // Media attachments list
   tags: string[];             // Tags list
+  cost?: EntryCost;           // Transportation cost of this segment, optional
 };
 ```
 
@@ -138,12 +173,12 @@ export type Journey = {
 
 ### EntryTemplate
 
-Entry template for quick preset text and tag insertion.
+Entry template (defined in `types/template.ts`) for quick preset text and tag insertion.
 
 ```typescript
 export type EntryTemplate = {
   id: string;                // Unique identifier
-  label: string;              // Display label (in Chinese)
+  label: string;              // Display label
   text: string;               // Template preset text content
   tags: string[];             // Preset tags list
 };
@@ -171,6 +206,19 @@ export type NearbyPlace = {
   longitude: number;           // Longitude
 };
 ```
+
+### ReportTemplateId
+
+Export report template identifier (defined in `lib/report-templates.ts`).
+
+```typescript
+export type ReportTemplateId = 'classic' | 'compact';
+```
+
+| Value | Description |
+|-------|-------------|
+| `classic` | Classic: teal cover · timeline cards · cost table |
+| `compact` | Compact: single-page tight layout · blue tone |
 
 ### LocalePreference
 
@@ -210,6 +258,7 @@ export type AppBackupV1 = {
 flowchart TD
     User[User Action] --> JourneyMgmt[Journey Management]
     User --> TimelineEntry[Timeline Entry]
+    User --> Cost[Transportation Cost]
     User --> Template[Template Recording]
     User --> Map[Map & Location]
 
@@ -221,6 +270,7 @@ flowchart TD
     TimelineEntry -->|location| TimelineLocation
     TimelineEntry -->|media| TimelineMedia
     TimelineEntry -->|tags| TagList[Tag List]
+    TimelineEntry -->|cost| EntryCost
 
     Template -->|travel| TravelTemplate[Travel Templates]
     Template -->|commute| CommuteTemplate[Commute Templates]
@@ -237,14 +287,15 @@ flowchart TD
 
 ## Storage Keys
 
-All data is persisted locally via AsyncStorage with the prefix `gowherer:`.
+All data is persisted locally via AsyncStorage with the prefix `gowherer:`, centrally defined in `lib/storage-keys.ts`.
 
 | Storage Key | Data Type | Description |
 |-------------|-----------|-------------|
 | `gowherer:journeys:v1` | `Journey[]` | All journey data |
-| `gowherer:entry-templates:v1` | `EntryTemplateConfig` | Template configuration |
 | `gowherer:entry-templates:v1:zh` | `EntryTemplate[]` | Chinese templates |
 | `gowherer:entry-templates:v1:en` | `EntryTemplate[]` | English templates |
 | `gowherer:pending-location:v1` | `TimelineLocation` | Pending location (temporarily stored after map picker) |
 | `gowherer:locale-preference:v1` | `LocalePreference` | Locale preference |
 | `gowherer:theme-preference:v1` | `ThemePreference` | Theme preference |
+| `gowherer:review-filters:v1` | Review filters state | Persisted type/tag filters and expansion state |
+| `gowherer:geocode-cache:v1` | `GeocodeCachePayload` | Reverse geocoding local cache (~110m grid keys, capped at 500 entries) |
