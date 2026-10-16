@@ -35,12 +35,15 @@ GoWherer is designed around one complete trip: capture as you go with minimal in
 ## Interface Preview
 
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px;">
-  <img src="/01.jpg" alt="Journey List" style="width: 100%; border-radius: 8px;" />
-  <img src="/02.jpg" alt="Journey Details" style="width: 100%; border-radius: 8px;" />
-  <img src="/03.jpg" alt="Record Editing" style="width: 100%; border-radius: 8px;" />
-  <img src="/04.jpg" alt="Map Trajectory" style="width: 100%; border-radius: 8px;" />
-  <img src="/05.jpg" alt="Statistics Summary" style="width: 100%; border-radius: 8px;" />
-  <img src="/06.jpg" alt="Export Preview" style="width: 100%; border-radius: 8px;" />
+  <img src="/home-light.jpg" alt="Home · Create Journey" style="width: 100%; border-radius: 8px;" />
+  <img src="/going-light.jpg" alt="In Progress · Add Entry" style="width: 100%; border-radius: 8px;" />
+  <img src="/list-light.jpg" alt="Journey Review List" style="width: 100%; border-radius: 8px;" />
+  <img src="/detail-light.jpg" alt="Journey Detail Timeline" style="width: 100%; border-radius: 8px;" />
+  <img src="/export-light.jpg" alt="Export Template Picker" style="width: 100%; border-radius: 8px;" />
+  <img src="/ai-light.jpg" alt="AI Analysis" style="width: 100%; border-radius: 8px;" />
+  <img src="/setting-light.jpg" alt="Settings" style="width: 100%; border-radius: 8px;" />
+  <img src="/home-dark.jpg" alt="Dark Mode · Home" style="width: 100%; border-radius: 8px;" />
+  <img src="/list-dark.jpg" alt="Dark Mode · Review List" style="width: 100%; border-radius: 8px;" />
 </div>
 
 Ready to try it? Head over to the [download page](/en/download) to install GoWherer.

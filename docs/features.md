@@ -35,12 +35,15 @@ GoWherer 围绕一次完整的出行设计：出发时随手记、路上少打�
 ## 界面预览
 
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px;">
-  <img src="/01.jpg" alt="旅程列表" style="width: 100%; border-radius: 8px;" />
-  <img src="/02.jpg" alt="旅程详情" style="width: 100%; border-radius: 8px;" />
-  <img src="/03.jpg" alt="记录编辑" style="width: 100%; border-radius: 8px;" />
-  <img src="/04.jpg" alt="地图轨迹" style="width: 100%; border-radius: 8px;" />
-  <img src="/05.jpg" alt="统计摘要" style="width: 100%; border-radius: 8px;" />
-  <img src="/06.jpg" alt="导出预览" style="width: 100%; border-radius: 8px;" />
+  <img src="/home-light.jpg" alt="首页 · 创建旅程" style="width: 100%; border-radius: 8px;" />
+  <img src="/going-light.jpg" alt="进行中 · 新增记录" style="width: 100%; border-radius: 8px;" />
+  <img src="/list-light.jpg" alt="旅程回顾列表" style="width: 100%; border-radius: 8px;" />
+  <img src="/detail-light.jpg" alt="旅程详情时间线" style="width: 100%; border-radius: 8px;" />
+  <img src="/export-light.jpg" alt="导出模板选择" style="width: 100%; border-radius: 8px;" />
+  <img src="/ai-light.jpg" alt="AI 分析" style="width: 100%; border-radius: 8px;" />
+  <img src="/setting-light.jpg" alt="设置页" style="width: 100%; border-radius: 8px;" />
+  <img src="/home-dark.jpg" alt="深色模式 · 首页" style="width: 100%; border-radius: 8px;" />
+  <img src="/list-dark.jpg" alt="深色模式 · 回顾列表" style="width: 100%; border-radius: 8px;" />
 </div>
 
 准备好试一试了吗？前往[下载页](/download)安装 GoWherer。
