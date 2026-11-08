@@ -40,7 +40,10 @@ features:
 ## Interface Preview
 
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px;">
-  <img src="/home-light.jpg" alt="Home · Create Journey" style="width: 100%; border-radius: 8px;" />
+  <img src="/home-city-walk.jpg" alt="Home · City Walk Entry" style="width: 100%; border-radius: 8px;" />
+  <img src="/city-walk-setup.jpg" alt="City Walk · Route Setup" style="width: 100%; border-radius: 8px;" />
+  <img src="/city-walk-generating.jpg" alt="City Walk · Generation Progress" style="width: 100%; border-radius: 8px;" />
+  <img src="/city-walk-route.jpg" alt="City Walk · Route Preview" style="width: 100%; border-radius: 8px;" />
   <img src="/going-light.jpg" alt="In Progress · Add Entry" style="width: 100%; border-radius: 8px;" />
   <img src="/list-light.jpg" alt="Journey Review List" style="width: 100%; border-radius: 8px;" />
   <img src="/detail-light.jpg" alt="Journey Detail Timeline" style="width: 100%; border-radius: 8px;" />

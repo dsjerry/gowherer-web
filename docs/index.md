@@ -43,7 +43,10 @@ features:
 ## 界面预览
 
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px;">
-  <img src="/home-light.jpg" alt="首页 · 创建旅程" style="width: 100%; border-radius: 8px;" />
+  <img src="/home-city-walk.jpg" alt="首页 · 城市漫步入口" style="width: 100%; border-radius: 8px;" />
+  <img src="/city-walk-setup.jpg" alt="城市漫步 · 路线设置" style="width: 100%; border-radius: 8px;" />
+  <img src="/city-walk-generating.jpg" alt="城市漫步 · 生成进度" style="width: 100%; border-radius: 8px;" />
+  <img src="/city-walk-route.jpg" alt="城市漫步 · 路线预览" style="width: 100%; border-radius: 8px;" />
   <img src="/going-light.jpg" alt="进行中 · 新增记录" style="width: 100%; border-radius: 8px;" />
   <img src="/list-light.jpg" alt="旅程回顾列表" style="width: 100%; border-radius: 8px;" />
   <img src="/detail-light.jpg" alt="旅程详情时间线" style="width: 100%; border-radius: 8px;" />
