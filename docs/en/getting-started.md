@@ -91,7 +91,7 @@ gowherer/
 │   ├── journey-stats.ts          # Trip statistics and segment stats
 │   ├── journey-cost.ts           # Transportation cost aggregation
 │   ├── journey-pdf.ts            # PDF/long-image export
-│   ├── report-templates.ts       # Report templates (classic/compact)
+│   ├── report-templates.ts       # Report templates (classic/data brief/keepsake)
 │   ├── template-storage.ts       # Template management
 │   ├── template-storage-i18n.ts  # Per-locale template storage
 │   ├── track-utils.ts            # Track sanitizing/smoothing/measuring

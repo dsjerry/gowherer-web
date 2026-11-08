@@ -168,6 +168,19 @@ export type Journey = {
   tags: string[];             // 旅程级标签
   entries: TimelineEntry[];   // 时间线条目列表
   trackLocations: TimelineLocation[]; // 持续 GPS 轨迹点集合
+  aiReview?: JourneyAiReview; // 当前旅程的 AI 回顾分析，可重新生成覆盖
+};
+```
+
+### JourneyAiReview
+
+保存在 `Journey.aiReview` 中的单段旅程分析结果。
+
+```typescript
+export type JourneyAiReview = {
+  content: string;
+  model: string;
+  createdAt: string;
 };
 ```
 
@@ -212,13 +225,22 @@ export type NearbyPlace = {
 导出报告模板标识（定义于 `lib/report-templates.ts`）。
 
 ```typescript
-export type ReportTemplateId = 'classic' | 'compact';
+export type ReportTemplateId = 'classic' | 'compact' | 'premium';
 ```
 
 | 值 | 说明 |
 |----|------|
-| `classic` | 经典：青绿封面 · 时间线卡片 · 交通费表 |
-| `compact` | 简约：单页紧凑排版 · 蓝色基调 |
+| `classic` | 经典手记：自然纸感 · 编辑式标题 · 手记时间线 |
+| `compact` | 数据简报：钴蓝信息栏 · 紧凑统计卡 |
+| `premium` | 典藏画册：午夜蓝封面 · 香槟金细节 |
+
+### CityWalkPlan
+
+城市漫步路线方案（定义于 `types/city-walk.ts`），与 `Journey.trackLocations` 分开保存。方案中的途经点来自高德 POI 候选，AI 只负责选择和排序；路线分段及折线来自高德步行路径规划，坐标统一为 GCJ-02。方案可独立保存，也可通过 `linkedJourneyId` 关联「开始漫步」后创建的普通旅程。
+
+### AiInsight
+
+回顾页「分析全部旅程」生成的整体分析记录。包含分析内容、模型、创建时间和分析时的旅程数量，独立于某一条 Journey 保存。
 
 ### LocalePreference
 
@@ -247,6 +269,7 @@ export type AppBackupV1 = {
   };
   journeys: Journey[];
   entryTemplates: Record<Locale, EntryTemplateConfig>;
+  cityWalkPlans?: CityWalkPlan[];
 };
 ```
 
@@ -279,19 +302,22 @@ flowchart TD
     Map --> Track[轨迹记录]
     Map --> Nearby[附近地点]
 
-    Journey --> Storage[(AsyncStorage)]
-    Storage --> Persistence[数据持久化]
+    Journey --> NativeDB[(原生 SQLite)]
+    Journey --> WebStorage[(Web AsyncStorage)]
+    CityWalkPlan --> AsyncStorage[(AsyncStorage)]
+    AISettings --> AsyncStorage
+    AIInsights --> AsyncStorage
 ```
 
 ---
 
 ## 存储键
 
-所有数据通过 AsyncStorage 本地持久化，存储键前缀为 `gowherer:`，集中定义在 `lib/storage-keys.ts`。
+数据保存在设备本地：Android/iOS 上的旅程使用 SQLite，Web 端及旧版迁移使用 `gowherer:journeys:v1`；偏好、小型分析记录和城市漫步方案使用 AsyncStorage。AsyncStorage 存储键前缀为 `gowherer:`，集中定义在 `lib/storage-keys.ts`。
 
 | 存储键 | 数据类型 | 说明 |
 |--------|----------|------|
-| `gowherer:journeys:v1` | `Journey[]` | 所有旅程数据 |
+| `gowherer:journeys:v1` | `Journey[]` | Web 端旅程存储及旧版迁移来源；原生端当前使用 SQLite |
 | `gowherer:entry-templates:v1:zh` | `EntryTemplate[]` | 中文模板 |
 | `gowherer:entry-templates:v1:en` | `EntryTemplate[]` | 英文模板 |
 | `gowherer:pending-location:v1` | `TimelineLocation` | 待处理位置（地图选点后临时存储） |
@@ -299,3 +325,6 @@ flowchart TD
 | `gowherer:theme-preference:v1` | `ThemePreference` | 主题偏好 |
 | `gowherer:review-filters:v1` | 回顾页筛选状态 | 类型/标签筛选与展开状态持久化 |
 | `gowherer:geocode-cache:v1` | `GeocodeCachePayload` | 逆地理编码本地缓存（约 110m 网格键，上限 500 条） |
+| `gowherer:ai-settings:v1` | `AiSettings` | 用户配置的 AI 服务商、Base URL、模型与 Key |
+| `gowherer:ai-insights:v1` | `AiInsight[]` | 回顾页整体 AI 分析历史 |
+| `gowherer:city-walk-plans:v1` | `CityWalkPlan[]` | 最多 20 条已保存城市漫步方案 |

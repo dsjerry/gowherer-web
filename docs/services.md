@@ -1,6 +1,6 @@
 # 服务接口
 
-本文档描述 GoWherer 应用的核心服务模块，源码位于 `lib/` 目录。所有服务均为纯本地计算或网络请求，不依赖后端 API。
+本文档描述 GoWherer 应用的核心服务模块，源码位于 `lib/` 目录。旅程、媒体和方案以本地存储为主；地图服务与用户配置的 AI 服务会发起外部网络请求。City Walk 默认由客户端调用高德 Web API，也可配置自有代理；应用不要求部署 GoWherer 后端。
 
 ---
 
@@ -173,13 +173,14 @@ async function exportJourneyPdf(
 ### 导出模板 (`lib/report-templates.ts`)
 
 ```typescript
-export type ReportTemplateId = 'classic' | 'compact';
+export type ReportTemplateId = 'classic' | 'compact' | 'premium';
 export const REPORT_TEMPLATES: ReportTemplateId[];
 export const DEFAULT_REPORT_TEMPLATE: ReportTemplateId; // 'classic'
 ```
 
-- `classic` 经典：青绿封面 · 时间线卡片 · 交通费表。
-- `compact` 简约：单页紧凑排版 · 蓝色基调。
+- `classic` 经典：自然纸感 · 编辑式标题 · 手记时间线。
+- `compact` 数据简报：钴蓝信息栏 · 紧凑统计卡。
+- `premium` 典藏画册：午夜蓝封面 · 香槟金细节。
 
 ### 长图导出 (`app/journey-detail.tsx`)
 
@@ -350,11 +351,35 @@ function useLocationTracking(
 
 #### `buildAppBackup(appVersion)` / `writeBackupToFile(backup)` / `serializeBackup(backup)`
 
-构建完整备份（旅程、模板、主题与语言偏好）、写入 JSON 文件、序列化为字符串。
+构建完整备份（旅程、城市漫步方案、模板、主题与语言偏好）、写入 JSON 文件、序列化为字符串。
 
 #### `parseBackupString(raw)` / `importBackup(backup)`
 
 解析备份字符串（版本校验与格式容错），写入 AsyncStorage 完成恢复。
+
+---
+
+## AI 与城市漫步服务
+
+### AI 配置与分析 (`lib/ai-settings.ts` / `lib/ai-review.ts`)
+
+用户在设置页自带 AI 服务商、Base URL、模型与 API Key（BYOK）；配置和分析结果保存在设备本地。AI SDK 通过 OpenAI-compatible 连接器发起请求。
+
+- 单段旅程分析使用当前旅程的文字、地点名、标签、时间、交通费和统计摘要，结果存入该旅程的 `aiReview` 字段。
+- 全部旅程分析使用每段旅程的汇总信息，结果按时间倒序存入 `gowherer:ai-insights:v1`。
+- 原始照片、视频、音频文件和 GPS 坐标轨迹点不会作为媒体或轨迹上传给 AI；AI 分析会把必要的文本与摘要发送到用户配置的服务商。
+
+### City Walk 地图服务 (`lib/city-walk-service.ts`)
+
+- `queryCityWalkCandidates(...)`：按兴趣主题从高德获取周边真实 POI，去重并限制候选数量。
+- `queryWalkingLeg(...)` / `queryWalkingLegs(...)`：通过高德步行路径规划计算每一段距离、时间和折线。
+- 默认在客户端直连高德 Web 服务；设置 `EXPO_PUBLIC_CITY_WALK_API_BASE_URL` 后改走自有候选点/路线代理。当前未使用高德 MCP。
+
+### City Walk AI 编排与存储 (`lib/city-walk-planner.ts` / `lib/city-walk-storage.ts`)
+
+AI 只能从高德提供的候选 POI ID 中选择与排序，客户端校验 ID、去重、站点数量和停留时间；路线几何仍完全来自高德。已保存方案独立于 Journey 存储，上限 20 条；备份 JSON 会包含城市漫步方案。
+
+**关键边界**：计划路线保存在 `CityWalkPlan.legs`，实际记录的 GPS 轨迹保存在 `Journey.trackLocations`，二者不混用。「开始漫步」会创建普通旅程并通过 `linkedJourneyId` 关联方案，不会把规划路线当作实际 GPS 记录。
 
 ---
 

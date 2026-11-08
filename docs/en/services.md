@@ -1,6 +1,6 @@
 # Services
 
-This document describes the core service modules in GoWherer. Source code is located in the `lib/` directory. All services are pure local computation or network requests with no backend API dependency.
+This document describes the core service modules in GoWherer. Source code is located in the `lib/` directory. Journeys, media, and plans are primarily stored locally; map and user-configured AI providers make external network requests. City Walk calls Amap Web APIs from the client by default, with an optional self-hosted proxy. No GoWherer backend is required.
 
 ---
 
@@ -173,13 +173,14 @@ Photos are downscaled (max edge 1280px) and re-encoded as JPEG (0.7 quality) bef
 ### Report Templates (`lib/report-templates.ts`)
 
 ```typescript
-export type ReportTemplateId = 'classic' | 'compact';
+export type ReportTemplateId = 'classic' | 'compact' | 'premium';
 export const REPORT_TEMPLATES: ReportTemplateId[];
 export const DEFAULT_REPORT_TEMPLATE: ReportTemplateId; // 'classic'
 ```
 
-- `classic`: teal cover · timeline cards · cost table.
-- `compact`: single-page tight layout · blue tone.
+- `classic`: natural paper · editorial title · field-note timeline.
+- `compact`: cobalt header · compact stat tiles.
+- `premium`: midnight cover · champagne accents · gallery-style timeline.
 
 ### Long Image Export (`app/journey-detail.tsx`)
 
@@ -350,11 +351,35 @@ Provides app data export/import for cross-device migration.
 
 #### `buildAppBackup(appVersion)` / `writeBackupToFile(backup)` / `serializeBackup(backup)`
 
-Builds the full backup (journeys, templates, theme and language preferences), writes it to a JSON file, and serializes it to a string.
+Builds the full backup (journeys, City Walk plans, templates, theme and language preferences), writes it to a JSON file, and serializes it to a string.
 
 #### `parseBackupString(raw)` / `importBackup(backup)`
 
 Parses the backup string (with version validation and format tolerance) and writes it to AsyncStorage to complete the restore.
+
+---
+
+## AI and City Walk Services
+
+### AI Settings and Analysis (`lib/ai-settings.ts` / `lib/ai-review.ts`)
+
+Users bring their own AI provider, Base URL, model, and API key (BYOK) in Settings. Configuration and analysis results are stored locally. Requests use the AI SDK with an OpenAI-compatible connector.
+
+- Single-journey analysis uses the selected journey's text, place names, tags, timestamps, fares, and statistics; the result is stored in that journey's `aiReview` field.
+- Overall analysis uses summaries of each journey; results are stored newest-first under `gowherer:ai-insights:v1`.
+- Raw photo, video, and audio files and GPS track coordinates are not uploaded as media or tracks. The selected AI provider does receive the text and summaries required for the requested analysis.
+
+### City Walk Map Service (`lib/city-walk-service.ts`)
+
+- `queryCityWalkCandidates(...)`: fetches real nearby Amap POIs by interest, then deduplicates and caps the candidate list.
+- `queryWalkingLeg(...)` / `queryWalkingLegs(...)`: uses Amap walking directions to calculate each leg's distance, duration, and polyline.
+- The client calls Amap Web Services directly by default. Setting `EXPO_PUBLIC_CITY_WALK_API_BASE_URL` switches candidate and route requests to a self-hosted proxy. The app does not currently use Amap MCP.
+
+### City Walk AI Planning and Storage (`lib/city-walk-planner.ts` / `lib/city-walk-storage.ts`)
+
+AI can only select and order POI IDs returned by Amap. The client validates IDs, removes duplicates, and bounds stop counts and stay times; route geometry always comes from Amap. Saved plans are stored separately from journeys, capped at 20, and included in JSON backups.
+
+**Important boundary**: planned route legs live in `CityWalkPlan.legs`; recorded GPS points live in `Journey.trackLocations`. “Start Walk” creates a regular journey linked through `linkedJourneyId` and does not treat the planned route as an actual GPS recording.
 
 ---
 

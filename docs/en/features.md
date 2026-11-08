@@ -1,6 +1,6 @@
 # Features
 
-GoWherer is designed around one complete trip: capture as you go with minimal interruption, let the app do the math when you arrive, and export for sharing whenever you like. All data stays on your own phone.
+GoWherer is designed around one complete trip: capture as you go, then review and share it later. Journeys and media are stored locally by default. AI features are optional and send only the material needed for the requested analysis to the AI provider you configure.
 
 ## On the Road: Capture Without Interrupting Your Trip
 
@@ -21,21 +21,43 @@ GoWherer is designed around one complete trip: capture as you go with minimal in
 - **Review List & Detail Page**: Scan all journeys as summary cards, then open a detail page to revisit the timeline, photo wall, and track map.
 - **Search & Filters**: Type (Travel/Commute), tags, and keywords help you find any past trip in seconds.
 
+## AI Assistant: Review Journeys and Plan Walks
+
+### AI Journey Analysis
+
+- Analyze a journey from its detail page. AI uses the timeline, places, tags, fares, and available statistics to create a review saved with that journey; view it later or regenerate it.
+- Analyze all journeys from the Review page to create an overview of travel habits, journey types, routes, and costs. Previous insights are saved by date.
+- Configure an OpenAI-compatible provider, Base URL, model, and your own API key in Settings. The app can fetch available models and test the connection.
+
+### AI City Walk
+
+- Open City Walk from Home and choose an origin, time budget, interests, walking pace, and a loop or one-way route.
+- GoWherer first gets real POI candidates from Amap. AI selects and orders only those candidates; Amap walking directions calculate each actual route leg, distance, and duration.
+- Preview the map, stops, suggested stay times, and AI recommendations. Remove a stop and recalculate, save the plan, or start a regular journey linked to it.
+- A planned walking route is kept separate from the device's actual GPS track; the plan line is never presented as a recorded track.
+
+### AI and Data
+
+AI uses bring-your-own-key (BYOK) and requires explicit configuration. A single-journey analysis sends that journey's text entries and relevant summaries; an overall review sends summaries of the journeys. Raw photo, video, and audio files and GPS track coordinates are not uploaded to AI. City Walk sends the current origin and candidate place information to AI, not journey history or media. Place search and route calculation make separate requests to Amap.
+
 ## Ready to Share: One-Tap Export
 
-- **PDF Report**: Track map, stats summary, timeline details, and cost table in one document, with two built-in templates — "Classic" (teal cover) and "Compact" (single page).
+- **PDF Report**: Track map, stats summary, timeline details, and cost table in one document, with three templates: "Classic", "Data Brief", and "Keepsake".
 - **Long Image Sharing**: The report renders into a single long image, ready for social media or group chats — no screenshot stitching.
 
 ## Built to Last: Your Data Stays Safe
 
-- **Backup & Restore**: Journeys, templates, and preferences export to one JSON file; restoring on a new phone just works.
+- **Backup & Restore**: Journeys, City Walk plans, templates, and preferences export to one JSON file; restoring on a new phone just works.
 - **Storage Governance**: Media files are hosted in an app-managed directory, cascade-cleaned on delete, with orphan scanning to reclaim space.
-- **Nice Details**: Light/dark theme, English/Chinese UI, haptic feedback, and local log export for troubleshooting.
+- **Nice Details**: Light/dark theme, English/Chinese UI, haptic feedback, and local log export for troubleshooting. Journeys, media, AI settings, and saved walk plans persist locally; AI requests go to the provider selected by the user.
 
 ## Interface Preview
 
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px;">
-  <img src="/home-light.jpg" alt="Home · Create Journey" style="width: 100%; border-radius: 8px;" />
+  <img src="/home-city-walk.jpg" alt="Home · City Walk Entry" style="width: 100%; border-radius: 8px;" />
+  <img src="/city-walk-setup.jpg" alt="City Walk · Route Setup" style="width: 100%; border-radius: 8px;" />
+  <img src="/city-walk-generating.jpg" alt="City Walk · Generation Progress" style="width: 100%; border-radius: 8px;" />
+  <img src="/city-walk-route.jpg" alt="City Walk · Route Preview" style="width: 100%; border-radius: 8px;" />
   <img src="/going-light.jpg" alt="In Progress · Add Entry" style="width: 100%; border-radius: 8px;" />
   <img src="/list-light.jpg" alt="Journey Review List" style="width: 100%; border-radius: 8px;" />
   <img src="/detail-light.jpg" alt="Journey Detail Timeline" style="width: 100%; border-radius: 8px;" />
